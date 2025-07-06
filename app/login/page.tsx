@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = "force-dynamic";
+
 import type React from "react"
 
 import { useState } from "react"
@@ -12,12 +14,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "../contexts/auth-context"
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
     rememberMe: false,
   })
@@ -29,30 +33,17 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // 실제 로그인 로직 구현
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // 시뮬레이션
-
-      // 간단한 로그인 검증
-      if (formData.email === "user@example.com" && formData.password === "password123") {
-        // 토큰 저장 (실제로는 서버에서 받은 토큰)
-        document.cookie = "token=sample-jwt-token; path=/; max-age=86400"
-        localStorage.setItem("auth-token", "sample-jwt-token")
-
-        // 사용자 ID 저장 (이메일을 사용자 ID로 사용)
-        localStorage.setItem("current-user-id", formData.email)
-
+      const result = await login(formData.username, formData.password)
+      if (result.success) {
         toast({
           title: "로그인 성공!",
           description: "환영합니다.",
         })
-
-        // 페이지 새로고침으로 헤더 상태 업데이트
-        const redirect = new URLSearchParams(window.location.search).get("redirect")
-        window.location.href = redirect || "/"
+        router.push("/main")
       } else {
         toast({
           title: "로그인 실패",
-          description: "이메일 또는 비밀번호가 올바르지 않습니다.",
+          description: result.error || "아이디 또는 비밀번호가 올바르지 않습니다.",
           variant: "destructive",
         })
       }
@@ -91,17 +82,16 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">이메일</Label>
+                <Label htmlFor="username">아이디</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="이메일을 입력하세요"
-                    value={formData.email}
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="아이디를 입력하세요"
+                    value={formData.username}
                     onChange={handleChange}
-                    className="pl-10"
+                    className="pl-3"
                     required
                   />
                 </div>

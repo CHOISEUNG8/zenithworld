@@ -35,6 +35,7 @@ import {
   Grid3X3,
   Pencil,
 } from "lucide-react"
+import { useAuth } from "../../app/contexts/auth-context"
 
 const categories = [
   {
@@ -146,37 +147,17 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [cartItemsCount, setCartItemsCount] = useState(0)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const { user, logout } = useAuth();
 
+  // 장바구니 카운트 로직 (user가 있을 때만)
   useEffect(() => {
-    // 로그인 상태 확인 (쿠키나 로컬스토리지에서 토큰 확인)
-    const cookieToken = document.cookie.includes("token=") || document.cookie.includes("auth-token=")
-    const localToken = localStorage.getItem("auth-token")
-    const userId = localStorage.getItem("current-user-id")
-    const isUserLoggedIn = cookieToken || !!localToken
-
-    setIsLoggedIn(isUserLoggedIn)
-    setCurrentUserId(userId)
-
-    // 로그인 상태가 변경되면 장바구니도 업데이트
-    if (!isUserLoggedIn) {
-      setCartItemsCount(0)
-      setCurrentUserId(null)
-    }
-  }, [])
-
-  useEffect(() => {
-    // Load cart items from localStorage and filter valid items (within 7 days)
     const loadCartItems = () => {
-      // 로그인하지 않은 경우 장바구니 숨김
-      if (!isLoggedIn || !currentUserId) {
+      if (!user) {
         setCartItemsCount(0)
         return
       }
-
-      const cartKey = `cartItems_${currentUserId}`
+      const cartKey = `cartItems_${user.id}`
       const storedCartItems = localStorage.getItem(cartKey)
       if (storedCartItems) {
         try {
@@ -187,96 +168,58 @@ export default function Header() {
             const daysDiff = (now - addedTime) / (1000 * 60 * 60 * 24)
             return daysDiff <= 7
           })
-
-          // Update localStorage with valid items only
           if (validItems.length !== cartItems.length) {
             localStorage.setItem(cartKey, JSON.stringify(validItems))
           }
-
           setCartItemsCount(validItems.length)
         } catch (error) {
-          console.error("Error parsing cart items:", error)
           setCartItemsCount(0)
         }
       } else {
         setCartItemsCount(0)
       }
     }
-
     loadCartItems()
-
-    // Listen for storage changes (when cart is updated from other tabs/components)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === `cartItems_${currentUserId}`) {
+      if (user && e.key === `cartItems_${user.id}`) {
         loadCartItems()
       }
     }
-
     window.addEventListener("storage", handleStorageChange)
-
-    // Also listen for custom cart update events
-    const handleCartUpdate = () => {
-      loadCartItems()
-    }
-
+    const handleCartUpdate = () => { loadCartItems() }
     window.addEventListener("cartUpdated", handleCartUpdate)
-
     return () => {
       window.removeEventListener("storage", handleStorageChange)
       window.removeEventListener("cartUpdated", handleCartUpdate)
     }
-  }, [isLoggedIn, currentUserId])
+  }, [user])
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
-
-  const handleLinkClick = (href: string) => {
-    scrollToTop()
-  }
-
+  const handleLinkClick = (href: string) => { scrollToTop() }
   const handleMyPageClick = () => {
-    if (isLoggedIn) {
+    if (user) {
       window.location.href = "/mypage"
     } else {
       window.location.href = "/guest-order"
     }
     scrollToTop()
   }
-
   const handleOrderTrackingClick = () => {
-    if (isLoggedIn) {
+    if (user) {
       window.location.href = "/mypage?tab=orders"
     } else {
       window.location.href = "/guest-order"
     }
     scrollToTop()
   }
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
       window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`
       scrollToTop()
     }
-  }
-
-  const handleLogout = () => {
-    // 쿠키와 로컬스토리지에서 토큰 제거
-    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-    document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-    localStorage.removeItem("auth-token")
-
-    // 현재 사용자 ID 제거 (장바구니 데이터는 유지)
-    localStorage.removeItem("current-user-id")
-
-    setCartItemsCount(0)
-    setIsLoggedIn(false)
-    setCurrentUserId(null)
-
-    // 홈페이지로 리다이렉트
-    window.location.href = "/"
-    scrollToTop()
   }
 
   return (
@@ -328,23 +271,19 @@ export default function Header() {
                               <span>{category.name}</span>
                             </div>
                             <div className="space-y-2">
-                              {category.subcategories.map((sub) => {
-                                const SubIcon = sub.icon
-                                return (
-                                  <Link
-                                    key={sub.name}
-                                    href={sub.href}
-                                    className="flex items-center space-x-2 p-2 rounded hover:bg-muted transition-colors text-sm text-gray-600 hover:text-gray-900"
-                                    onClick={() => {
-                                      handleLinkClick(sub.href)
-                                      setIsCategoryOpen(false)
-                                    }}
-                                  >
-                                    {SubIcon && <SubIcon className="h-3 w-3" />}
-                                    <span>{sub.name}</span>
-                                  </Link>
-                                )
-                              })}
+                              {category.subcategories.map((sub) => (
+                                <Link
+                                  key={sub.name}
+                                  href={sub.href}
+                                  className="flex items-center space-x-2 p-2 rounded hover:bg-muted transition-colors text-sm text-gray-600 hover:text-gray-900"
+                                  onClick={() => {
+                                    handleLinkClick(sub.href)
+                                    setIsCategoryOpen(false)
+                                  }}
+                                >
+                                  <span>{sub.name}</span>
+                                </Link>
+                              ))}
                             </div>
                           </div>
                         )
@@ -395,7 +334,7 @@ export default function Header() {
 
           {/* User Actions */}
           <div className="flex items-center space-x-1">
-            {!isLoggedIn ? (
+            {!user ? (
               <>
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/login" onClick={() => handleLinkClick("/login")}>
@@ -411,7 +350,7 @@ export default function Header() {
                 </Button>
               </>
             ) : (
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <Button variant="ghost" size="sm" onClick={logout}>
                 <LogIn className="h-4 w-4 mr-1" />
                 로그아웃
               </Button>
@@ -424,7 +363,7 @@ export default function Header() {
               <Link href="/cart" onClick={() => handleLinkClick("/cart")}>
                 <ShoppingCart className="h-4 w-4 mr-1" />
                 장바구니
-                {isLoggedIn && cartItemsCount > 0 && (
+                {user && cartItemsCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-200">
                     {cartItemsCount}
                   </span>
@@ -472,7 +411,7 @@ export default function Header() {
                           }}
                         >
                           <User className="h-4 w-4 mr-2" />
-                          {isLoggedIn ? "마이페이지" : "주문조회"}
+                          {user ? "마이페이지" : "주문조회"}
                         </Button>
                         <Button
                           variant="ghost"
@@ -495,7 +434,7 @@ export default function Header() {
                           >
                             <ShoppingCart className="h-4 w-4 mr-2" />
                             장바구니
-                            {isLoggedIn && cartItemsCount > 0 && (
+                            {user && cartItemsCount > 0 && (
                               <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-200">
                                 {cartItemsCount}
                               </span>
