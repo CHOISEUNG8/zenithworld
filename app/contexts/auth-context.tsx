@@ -30,7 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 페이지 로드 시 로그인 상태 확인
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/auth/me")
+        // 토큰을 헤더에 포함하여 요청
+        const token = document.cookie.replace(/(?:(?:^|.*;)\s*auth-token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        const response = await fetch("/api/auth/me", {
+          headers: token ? { "Authorization": `Bearer ${token}` } : {}
+        })
         if (response.ok) {
           const userData = await response.json()
           setUser(userData)
@@ -47,9 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = async (userId: string, password: string, name: string): Promise<{ success: boolean, error?: string }> => {
     try {
+      // 토큰을 헤더에 포함하여 요청
+      const token = document.cookie.replace(/(?:(?:^|.*;)*\s*auth-token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
       const response = await fetch("/api/auth/login/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ userId, password, name }),
       })
 
@@ -76,6 +85,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData.user);
+        // 토큰 저장
+        document.cookie = `auth-token=${userData.token}; path=/; SameSite=Lax`;
         return { success: true };
       } else {
         const data = await response.json();
