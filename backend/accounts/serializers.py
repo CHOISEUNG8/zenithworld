@@ -4,7 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from .models import User
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, validators=[validate_password])
+    password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
     
     class Meta:
@@ -18,6 +18,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("이미 사용 중인 아이디입니다.")
+        return value
+    
+    def validate_password(self, value):
+        import re
+        special = r"!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?"
+        if len(value) < 4 or len(value) > 20:
+            raise serializers.ValidationError("비밀번호는 4자 이상 20자 이하여야 합니다.")
+        if not re.match(r'^[a-zA-Z0-9' + special + r']{4,20}$', value):
+            raise serializers.ValidationError("비밀번호는 영문, 숫자, 특수문자만 사용할 수 있습니다.")
+        if re.match(r'^[' + special + r']{4,20}$', value):
+            raise serializers.ValidationError("비밀번호는 특수문자만으로 구성할 수 없습니다.")
         return value
     
     def validate(self, attrs):
