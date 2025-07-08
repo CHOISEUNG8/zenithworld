@@ -1,13 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Package, Heart, CreditCard, Settings, ShoppingBag, Truck, CheckCircle, Clock, Star } from "lucide-react"
+import { User, Package, Heart, CreditCard, Settings, ShoppingBag, Truck, CheckCircle, Clock, Star, LogIn } from "lucide-react"
+import { useAuth } from "../contexts/auth-context"
+import Link from "next/link"
 
 const orderHistory = [
   {
@@ -93,11 +96,35 @@ const getStatusBadge = (status: string) => {
 
 export default function MyPage() {
   const [activeTab, setActiveTab] = useState("dashboard")
+  const router = useRouter()
+  const { user, loading } = useAuth()
+
+  // 로그인 상태 확인 - loading이 완료되고 user가 없을 때만 리다이렉트
+  useEffect(() => {
+    // loading이 false가 되고 user가 없을 때만 리다이렉트
+    if (!loading && user === null) {
+      router.push("/login")
+    }
+  }, [user, loading, router])
+
+  // 로딩 중일 때는 로딩 화면 표시
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">로딩 중...</div>
+      </div>
+    )
+  }
+
+  // 로딩이 완료되었지만 사용자가 없을 때는 아무것도 표시하지 않음 (리다이렉트 중)
+  if (!user) {
+    return null
+  }
 
   const userInfo = {
-    name: "홍길동",
-    email: "user@example.com",
-    phone: "010-1234-5678",
+    name: user.name,
+    email: user.userId + "@example.com", // 임시 이메일
+    phone: "010-1234-5678", // 실제 사용자 정보로 업데이트 필요
     membershipLevel: "VIP",
     joinDate: "2023-06-15",
     totalOrders: 15,
@@ -120,13 +147,17 @@ export default function MyPage() {
 
   const membershipProgress = (userInfo.totalSpent / 3000000) * 100
 
+  const handleLinkClick = (path: string) => {
+    // 링크 클릭 시 수행할 작업
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center space-x-4 mb-8">
           <Avatar className="h-16 w-16">
             <AvatarImage src="/placeholder.svg?height=64&width=64&text=User" />
-            <AvatarFallback>홍길동</AvatarFallback>
+            <AvatarFallback>{userInfo.name}</AvatarFallback>
           </Avatar>
           <div>
             <h1 className="text-2xl font-bold">{userInfo.name}님</h1>

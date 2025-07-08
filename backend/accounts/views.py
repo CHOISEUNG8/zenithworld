@@ -77,3 +77,15 @@ def logout_view(request):
 def user_info_view(request):
     serializer = UserProfileSerializer(request.user)
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_me_view(request):
+    """현재 로그인한 사용자의 기본 정보를 반환합니다."""
+    print('Authorization header:', request.META.get('HTTP_AUTHORIZATION'))  # 실제로 헤더가 오는지 확인
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'name': user.name,
+    })

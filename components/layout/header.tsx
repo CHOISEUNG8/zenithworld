@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -149,6 +150,7 @@ export default function Header() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [cartItemsCount, setCartItemsCount] = useState(0)
   const { user, logout } = useAuth();
+  const router = useRouter()
 
   // 장바구니 카운트 로직 (user가 있을 때만)
   useEffect(() => {
@@ -200,24 +202,24 @@ export default function Header() {
   const handleLinkClick = (href: string) => { scrollToTop() }
   const handleMyPageClick = () => {
     if (user) {
-      window.location.href = "/mypage"
+      router.push("/mypage")
     } else {
-      window.location.href = "/guest-order"
+      router.push("/guest-order")
     }
     scrollToTop()
   }
   const handleOrderTrackingClick = () => {
     if (user) {
-      window.location.href = "/mypage?tab=orders"
+      router.push("/mypage?tab=orders")
     } else {
-      window.location.href = "/guest-order"
+      router.push("/guest-order")
     }
     scrollToTop()
   }
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
       scrollToTop()
     }
   }
@@ -355,9 +357,11 @@ export default function Header() {
                 로그아웃
               </Button>
             )}
-            <Button variant="ghost" size="sm" onClick={handleMyPageClick}>
-              <User className="h-4 w-4 mr-1" />
-              마이페이지
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={user ? "/mypage" : "/guest-order"} onClick={() => handleLinkClick(user ? "/mypage" : "/guest-order")}>
+                <User className="h-4 w-4 mr-1" />
+                마이페이지
+              </Link>
             </Button>
             <Button variant="ghost" size="sm" className="relative group" asChild>
               <Link href="/cart" onClick={() => handleLinkClick("/cart")}>

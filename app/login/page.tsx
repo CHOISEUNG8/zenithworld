@@ -39,7 +39,7 @@ export default function LoginPage() {
           title: "로그인 성공!",
           description: "환영합니다.",
         })
-        router.push("/main")
+        router.push("/")
       } else {
         toast({
           title: "로그인 실패",

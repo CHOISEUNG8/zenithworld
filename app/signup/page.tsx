@@ -108,6 +108,10 @@ export default function SignupPage() {
       newErrors.password = "비밀번호를 입력해주세요."
     } else if (formData.password.length < 4 || formData.password.length > 20) {
       newErrors.password = "비밀번호는 4자 이상 20자 이하여야 합니다."
+    } else if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{4,20}$/.test(formData.password)) {
+      newErrors.password = "비밀번호는 영문, 숫자, 특수문자만 사용할 수 있습니다."
+    } else if (/^[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{4,20}$/.test(formData.password)) {
+      newErrors.password = "비밀번호는 특수문자만으로 구성할 수 없습니다."
     }
 
     if (!formData.confirmPassword) {
@@ -149,13 +153,22 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
-      const result = await signup(formData.userId, formData.password, formData.name)
+      const result = await signup(
+        formData.userId, 
+        formData.password, 
+        formData.name,
+        formData.phone,
+        formData.birthYear && formData.birthMonth && formData.birthDay 
+          ? `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`
+          : undefined,
+        formData.gender
+      )
       if (result.success) {
         toast({
           title: "회원가입 성공!",
-          description: "회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.",
+          description: "회원가입이 완료되었습니다. 완료 페이지로 이동합니다.",
         })
-        router.push("/login")
+        router.push("/signup/complete")
       } else {
         toast({
           title: "회원가입 실패",

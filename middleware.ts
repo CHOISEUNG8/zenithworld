@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
 
   // 마이페이지 접근 시 인증 체크
   if (pathname.startsWith("/mypage")) {
-    const token = request.cookies.get("token")?.value
+    const token = request.cookies.get("auth-token")?.value
 
     if (!token) {
       const loginUrl = new URL("/login", request.url)

@@ -1,41 +1,53 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { users, signupLogs } from "../../_data"
-
-// 실제 프로젝트에서는 데이터베이스를 사용하세요
-// 여기서는 메모리 저장소를 사용합니다
-// (users, signupLogs는 _data.ts에서 import)
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, password, name } = await request.json()
+    const body = await request.json()
+    console.log("Signup API called with data:", body)
+    
+    const { userId, password, name, phone, birth_date, gender } = body
 
-    // 아이디 중복 확인
-    const existingUser = users.find((user) => user.userId === userId)
-    if (existingUser) {
-      return NextResponse.json({ error: "이미 존재하는 아이디입니다." }, { status: 400 })
+    // Django 백엔드 API로 회원가입 요청
+    const djangoData = {
+      username: userId,
+      password: password,
+      confirm_password: password,
+      name: name,
+      phone: phone || "",
+      birth_date: birth_date || null,
+      gender: gender || "",
     }
-
-    // 새 사용자 생성
-    const newUser = {
-      id: Date.now().toString(),
-      userId,
-      password, // 실제 프로젝트에서는 해시화해야 합니다
-      name,
-      signupTime: new Date().toISOString(),
-    }
-
-    users.push(newUser)
-
-    // 회원가입 로그 저장
-    signupLogs.push({
-      userId,
-      timestamp: new Date().toISOString(),
-      success: true,
+    
+    console.log("Sending to Django:", djangoData)
+    
+    const response = await fetch("http://127.0.0.1:8000/api/register/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(djangoData),
     })
 
-    return NextResponse.json({ message: "회원가입이 완료되었습니다." }, { status: 201 })
+    console.log("Django response status:", response.status)
+    
+    if (response.ok) {
+      const data = await response.json()
+      console.log("Django response data:", data)
+      return NextResponse.json({ 
+        message: "회원가입이 완료되었습니다.",
+        user: data.user 
+      }, { status: 201 })
+    } else {
+      const errorData = await response.json()
+      console.log("Django error:", errorData)
+      return NextResponse.json({ 
+        error: errorData.error || "회원가입에 실패했습니다." 
+      }, { status: response.status })
+    }
   } catch (error) {
     console.error("Signup error:", error)
-    return NextResponse.json({ error: "회원가입 중 오류가 발생했습니다." }, { status: 500 })
+    return NextResponse.json({ 
+      error: "서버 연결 오류가 발생했습니다." 
+    }, { status: 500 })
   }
 } 
