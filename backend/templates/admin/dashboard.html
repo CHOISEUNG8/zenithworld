@@ -1,0 +1,33 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+{% block content %}
+<h1>대시보드</h1>
+<div style="display: flex; flex-wrap: wrap; gap: 2rem;">
+  <div style="flex:1; min-width: 250px;">
+    <h2>매출 요약</h2>
+    <p>총 매출: {{ sales_total|intcomma }}원</p>
+  </div>
+  <div style="flex:1; min-width: 250px;">
+    <h2>주문 현황</h2>
+    <ul>
+      <li>전체 주문: {{ order_count }}</li>
+      <li>대기중: {{ order_pending }}</li>
+      <li>완료: {{ order_completed }}</li>
+    </ul>
+  </div>
+  <div style="flex:1; min-width: 250px;">
+    <h2>신규 회원 (최근 7일)</h2>
+    <p>{{ new_users }}명</p>
+  </div>
+</div>
+<div style="margin-top:2rem;">
+  <h2>인기 상품</h2>
+  <ol>
+    {% for product in popular_products %}
+      <li>{{ product.name }} (주문수: {{ product.order_num }})</li>
+    {% empty %}
+      <li>데이터 없음</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %} 

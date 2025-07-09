@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from accounts.admin import custom_admin_site
 
 @csrf_exempt
 def home_view(request):
@@ -23,7 +24,7 @@ def home_view(request):
 
 urlpatterns = [
     path('', home_view, name='home'),
-    path('admin/', admin.site.urls),
+    path('admin/', custom_admin_site.urls),
     path('api/', include('accounts.urls')),
 ]
 
