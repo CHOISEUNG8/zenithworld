@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import Header from "@/components/layout/header"
 import Footer from "@/components/layout/footer"
 import { AuthProvider } from "./contexts/auth-context"
+import AdminLayoutWrapper from "@/components/layout/admin-layout-wrapper"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,11 +27,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <AdminLayoutWrapper>
+              {children}
+            </AdminLayoutWrapper>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

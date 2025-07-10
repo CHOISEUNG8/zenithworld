@@ -339,13 +339,13 @@ export default function Header() {
             {!user ? (
               <>
                 <Button variant="ghost" size="sm" asChild className="inline-flex">
-                  <Link href="/login" onClick={() => handleLinkClick("/login")}> 
+                  <Link href="/login" onClick={() => handleLinkClick("/login")}>
                     <LogIn className="h-4 w-4 mr-1" />
                     로그인
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" asChild className="inline-flex">
-                  <Link href="/signup" onClick={() => handleLinkClick("/signup")}> 
+                  <Link href="/signup" onClick={() => handleLinkClick("/signup")}>
                     <UserPlus className="h-4 w-4 mr-1" />
                     회원가입
                   </Link>
@@ -358,13 +358,13 @@ export default function Header() {
               </Button>
             )}
             <Button variant="ghost" size="sm" asChild className="inline-flex">
-              <Link href={user ? "/mypage" : "/guest-order"} onClick={() => handleLinkClick(user ? "/mypage" : "/guest-order")}> 
+              <Link href={user ? "/mypage" : "/guest-order"} onClick={() => handleLinkClick(user ? "/mypage" : "/guest-order")}>
                 <User className="h-4 w-4 mr-1" />
                 마이페이지
               </Link>
             </Button>
             <Button variant="ghost" size="sm" className="relative group inline-flex" asChild>
-              <Link href="/cart" onClick={() => handleLinkClick("/cart")}> 
+              <Link href="/cart" onClick={() => handleLinkClick("/cart")}>
                 <ShoppingCart className="h-4 w-4 mr-1" />
                 장바구니
                 {user && cartItemsCount > 0 && (
