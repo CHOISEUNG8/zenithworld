@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Sum, Q
+import logging
 from .models import User
 from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer,
@@ -16,33 +17,68 @@ from .serializers import (
 )
 from .permissions import IsAdminUser, IsSuperUser
 
+# 로거 설정
+logger = logging.getLogger(__name__)
+
 # 기존 뷰들
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
-    serializer = RegisterSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
+    try:
+        logger.info(f"회원가입 요청 받음: {request.data}")
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            logger.info(f"회원가입 성공: {user.username}")
+            return Response({
+                'message': '회원가입이 완료되었습니다.',
+                'user': UserSerializer(user).data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            logger.error(f"회원가입 검증 실패: {serializer.errors}")
+            return Response({
+                'error': '입력 정보를 확인해주세요.',
+                'details': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f"회원가입 중 오류 발생: {str(e)}")
         return Response({
-            'message': '회원가입이 완료되었습니다.',
-            'user': UserSerializer(user).data
-        }, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            'error': '회원가입 중 오류가 발생했습니다.',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
-    serializer = LoginSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.validated_data['user']
-        refresh = RefreshToken.for_user(user)
+    try:
+        logger.info(f"로그인 요청 받음: {request.data}")
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+            
+            logger.info(f"로그인 성공: {user.username}, 토큰 발급 완료")
+            
+            return Response({
+                'message': '로그인 성공',
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'user': UserSerializer(user).data
+            })
+        else:
+            logger.error(f"로그인 검증 실패: {serializer.errors}")
+            return Response({
+                'error': '로그인 정보를 확인해주세요.',
+                'details': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f"로그인 중 오류 발생: {str(e)}")
         return Response({
-            'message': '로그인 성공',
-            'access_token': str(refresh.access_token),
-            'refresh_token': str(refresh),
-            'user': UserSerializer(user).data
-        })
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            'error': '로그인 중 오류가 발생했습니다.',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -73,6 +109,25 @@ def profile_view(request):
 def user_info_view(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def token_test_view(request):
+    """토큰 테스트용 뷰"""
+    return Response({
+        'message': '토큰이 필요하지 않은 엔드포인트입니다.',
+        'status': 'success'
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def token_verify_view(request):
+    """토큰 검증용 뷰"""
+    return Response({
+        'message': '토큰이 유효합니다.',
+        'user': UserSerializer(request.user).data,
+        'status': 'success'
+    })
 
 # 관리자용 뷰들
 class AdminDashboardView(generics.GenericAPIView):

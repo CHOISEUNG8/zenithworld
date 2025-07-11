@@ -42,6 +42,18 @@ const nextConfig = {
       },
     ];
   },
+  // 성능 최적화 설정
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: false,
+  // 개발 환경에서 경고 줄이기
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
+  // CSS 최적화
+  optimizeFonts: true,
+  swcMinify: true,
 };
 
 module.exports = nextConfig; 

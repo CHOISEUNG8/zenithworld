@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
@@ -13,6 +14,13 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user === null) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     // 이미 로그인된 경우 대시보드로 리다이렉트
@@ -94,6 +102,21 @@ export default function AdminLogin() {
       [e.target.name]: e.target.value,
     });
   };
+
+  const getDisplayName = (userData: any) => {
+    if (typeof userData.name === "string" && userData.name.trim() !== "") return userData.name;
+    if (userData.first_name || userData.last_name) return `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+    if (userData.username) return userData.username;
+    if (userData.email) return userData.email;
+    return "회원";
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">로딩 중...</div>;
+  }
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

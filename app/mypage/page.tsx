@@ -14,7 +14,7 @@ import Link from "next/link"
 
 const orderHistory = [
   {
-    id: "ORD-2024-001",
+    id: "ZW202507110001",
     date: "2024-01-15",
     status: "delivered",
     total: 156000,
@@ -24,14 +24,14 @@ const orderHistory = [
     ],
   },
   {
-    id: "ORD-2024-002",
+    id: "ZW202507110002",
     date: "2024-01-20",
     status: "shipping",
     total: 199000,
     items: [{ name: "스마트 워치 GPS", quantity: 1, price: 199000 }],
   },
   {
-    id: "ORD-2024-003",
+    id: "ZW202507110003",
     date: "2024-01-25",
     status: "processing",
     total: 45000,
@@ -96,47 +96,57 @@ const getStatusBadge = (status: string) => {
 
 export default function MyPage() {
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    joinDate: "",
+  })
   const router = useRouter()
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
 
-  // 로그인 상태 확인 - loading이 완료되고 user가 없을 때만 리다이렉트
+  // 로그인 상태 확인 - user가 없을 때 리다이렉트
   useEffect(() => {
-    // loading이 false가 되고 user가 없을 때만 리다이렉트
-    if (!loading && user === null) {
+    if (user === null) {
       router.push("/login")
     }
-  }, [user, loading, router])
+  }, [user, router])
 
-  // 로딩 중일 때는 로딩 화면 표시
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">로딩 중...</div>
-      </div>
-    )
-  }
+  // user 정보가 있을 때 formData 업데이트
+  useEffect(() => {
+    if (user) {
+      const userInfo = {
+        name: user.name,
+        email: user.adminId + "@example.com", // adminId 사용
+        phone: "010-1234-5678", // 실제 사용자 정보로 업데이트 필요
+        joinDate: "2023-06-15",
+      }
+      setFormData({
+        name: userInfo.name,
+        email: userInfo.email,
+        phone: userInfo.phone,
+        joinDate: userInfo.joinDate,
+      })
+    }
+  }, [user])
 
-  // 로딩이 완료되었지만 사용자가 없을 때는 아무것도 표시하지 않음 (리다이렉트 중)
+  // 사용자가 없을 때는 아무것도 표시하지 않음 (리다이렉트 중)
   if (!user) {
     return null
   }
 
+  const displayName =
+    (user.name && typeof user.name === "string" && user.name.trim() !== "") ? user.name : user.adminId;
+
   const userInfo = {
-    name: user.name,
-    email: user.userId + "@example.com", // 임시 이메일
-    phone: "010-1234-5678", // 실제 사용자 정보로 업데이트 필요
+    name: displayName,
+    email: user.adminId + "@example.com",
+    phone: "010-1234-5678",
     membershipLevel: "VIP",
     joinDate: "2023-06-15",
     totalOrders: 15,
     totalSpent: 2340000,
-  }
-
-  const [formData, setFormData] = useState({
-    name: userInfo.name,
-    email: userInfo.email,
-    phone: userInfo.phone,
-    joinDate: userInfo.joinDate,
-  })
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -157,10 +167,10 @@ export default function MyPage() {
         <div className="flex items-center space-x-4 mb-8">
           <Avatar className="h-16 w-16">
             <AvatarImage src="/placeholder.svg?height=64&width=64&text=User" />
-            <AvatarFallback>{userInfo.name}</AvatarFallback>
+            <AvatarFallback>{displayName}</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold">{userInfo.name}님</h1>
+            <h1 className="text-2xl font-bold">{displayName}님</h1>
             <p className="text-muted-foreground">{userInfo.email}</p>
             <Badge variant="secondary" className="mt-1">
               {userInfo.membershipLevel} 회원
