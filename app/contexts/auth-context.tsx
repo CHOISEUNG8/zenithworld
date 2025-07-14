@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string
@@ -55,10 +56,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (adminId: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/login/', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const res = await fetch(`${apiUrl}/api/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: adminId, password }),
+        credentials: 'include', // 쿠키 사용 시
       });
       if (!res.ok) {
         const text = await res.text();
@@ -66,9 +69,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         throw new Error('Login failed');
       }
       const data = await res.json();
+      console.log(data); // 여기에 access_token이 있는지 확인
+      document.cookie = `auth-token=${data.access_token}; path=/;`;
       const userInfo = await fetchUserInfo(data.access_token)
       setUser(userInfo)
-      document.cookie = `auth-token=${data.access_token}; path=/;`
       return { success: true }
     } catch (err) {
       console.error('Login error:', err);
@@ -77,10 +81,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }
 
   const fetchUserInfo = async (token: string): Promise<User> => {
-    const response = await fetch("http://127.0.0.1:8000/api/admin/me/", {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    const response = await fetch(`${apiUrl}/api/admin/me/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      credentials: 'include', // if using cookies
     })
     const userData = await response.json()
 
@@ -115,7 +121,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const token = document.cookie.replace(/(?:(?:^|.*;)*\s*auth-token\s*=\s*([^;]*).*$)|^.*$/, "$1")
-      const response = await fetch("/api/admin/create", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const response = await fetch(`${apiUrl}/api/admin/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -148,7 +155,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('Signup request to:', 'http://127.0.0.1:8000/api/register/')
       console.log('Signup data:', { username, password, name, phone, birthDate, gender })
       
-      const response = await fetch('http://127.0.0.1:8000/api/register/', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const response = await fetch(`${apiUrl}/api/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
