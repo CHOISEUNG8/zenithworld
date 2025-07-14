@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,7 +35,72 @@ const theme = {
   error: "#ef4444",
 }
 
+// 관리자 계정 데이터 (admin page에서 가져온 데이터)
+const adminAccounts = [
+  {
+    id: "admin001",
+    adminId: "admin@company.com",
+    username: "zwadmin",
+    password: "0045", // 실제 환경에서는 해시된 비밀번호 사용
+    name: "김관리",
+    role: "Admin",
+    lastLogin: "2024-01-15 14:30",
+    status: "활성",
+  },
+  {
+    id: "admin002",
+    adminId: "product.manager@company.com",
+    username: "product_manager",
+    password: "product123",
+    name: "이상품",
+    role: "Product",
+    lastLogin: "2024-01-15 10:15",
+    status: "활성",
+  },
+  {
+    id: "admin003",
+    adminId: "order.manager@company.com",
+    username: "order_manager",
+    password: "order123",
+    name: "박주문",
+    role: "Order",
+    lastLogin: "2024-01-14 16:45",
+    status: "활성",
+  },
+  {
+    id: "admin004",
+    adminId: "member.manager@company.com",
+    username: "member_manager",
+    password: "member123",
+    name: "최회원",
+    role: "Member",
+    lastLogin: "2024-01-13 09:20",
+    status: "활성",
+  },
+  {
+    id: "admin005",
+    adminId: "marketing@company.com",
+    username: "marketing_team",
+    password: "marketing123",
+    name: "정마케팅",
+    role: "Marketing",
+    lastLogin: "2024-01-12 11:30",
+    status: "활성",
+  },
+  {
+    id: "admin006",
+    adminId: "support@company.com",
+    username: "cs_support",
+    password: "support123",
+    name: "한상담",
+    role: "Support",
+    lastLogin: "2024-01-11 13:45",
+    status: "비활성",
+  },
+]
+
 export default function AdminLogin() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -53,6 +119,16 @@ export default function AdminLogin() {
     if (error) setError("")
   }
 
+  // 관리자 계정 검증 함수
+  const validateAdminAccount = (username: string, password: string) => {
+    const account = adminAccounts.find(acc => 
+      (acc.username === username || acc.adminId === username) && 
+      acc.password === password &&
+      acc.status === "활성"
+    )
+    return account
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -66,18 +142,36 @@ export default function AdminLogin() {
     }
 
     try {
-      // 실제 로그인 API 호출을 여기에 구현
-      // const response = await fetch('/api/admin/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // })
+      // 관리자 계정 검증
+      const validatedAccount = validateAdminAccount(formData.username, formData.password)
+      
+      if (!validatedAccount) {
+        setError("아이디 또는 비밀번호가 올바르지 않습니다. 다시 확인해주세요.")
+        setIsLoading(false)
+        return
+      }
 
+      // 로그인 성공 시 사용자 정보 저장
+      const adminUser = {
+        id: validatedAccount.id,
+        adminId: validatedAccount.adminId,
+        username: validatedAccount.username,
+        name: validatedAccount.name,
+        role: validatedAccount.role,
+      }
+
+      // 로컬 스토리지에 관리자 정보 저장
+      localStorage.setItem('admin_user', JSON.stringify(adminUser))
+      localStorage.setItem('admin_role', validatedAccount.role)
+      
+      // 로그인 시간 업데이트 (실제 환경에서는 서버에서 처리)
+      const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
+      
       // 임시 로그인 시뮬레이션
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       // 로그인 성공 시 리다이렉트
-      window.location.href = "/admin"
+      router.push("/admin")
     } catch (err) {
       setError("로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.")
     } finally {
@@ -269,6 +363,27 @@ export default function AdminLogin() {
               <p className="text-xs" style={{ color: theme.textMuted }}>
                 모든 데이터는 암호화되어 안전하게 전송됩니다
               </p>
+            </div>
+
+            {/* 테스트 계정 안내 */}
+            <div className="mt-4 p-3 rounded-lg border" style={{ 
+              backgroundColor: theme.primaryLight + "20", 
+              borderColor: theme.primary + "30" 
+            }}>
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertCircle className="w-4 h-4" style={{ color: theme.primary }} />
+                <span className="text-sm font-medium" style={{ color: theme.text }}>
+                  테스트 계정 정보
+                </span>
+              </div>
+              <div className="text-xs space-y-1" style={{ color: theme.textMuted }}>
+                <p><strong>최고관리자:</strong> zwadmin / 0045</p>
+                <p><strong>상품관리자:</strong> product / 0045</p>
+                <p><strong>주문관리자:</strong> order / 0045</p>
+                <p><strong>회원관리자:</strong> member / 0045</p>
+                <p><strong>마케팅관리자:</strong> marketing / 0045</p>
+                <p><strong>고객센터담당자:</strong> cssupport / 0045</p>
+              </div>
             </div>
           </CardContent>
         </Card>

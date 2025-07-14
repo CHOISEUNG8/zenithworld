@@ -54,7 +54,10 @@ import {
   Key,
   UserPlus,
   AlertCircle,
+  DollarSign,
+  LogOut,
 } from "lucide-react"
+import { useEffect, useMemo } from "react"
 
 const theme = {
   primary: "#ff8c00",
@@ -250,6 +253,16 @@ const menuItems = [
     ],
   },
   {
+    id: "settlement",
+    name: "정산관리",
+    icon: DollarSign,
+    requiredPermission: ["Admin", "Analytics"],
+    items: [
+      { name: "정산 내역", path: "/settlement/history", permission: ["Admin", "Analytics"] },
+      { name: "정산 요청", path: "/settlement/request", permission: ["Admin", "Analytics"] },
+    ],
+  },
+  {
     id: "admin",
     name: "관리자 설정",
     icon: Settings,
@@ -266,8 +279,8 @@ const menuItems = [
 const adminAccounts = [
   {
     id: "admin001",
-    adminId: "admin@company.com",
-    username: "administrator",
+    adminId: "zwadmin",
+    username: "Administrator",
     name: "김관리",
     role: "Admin",
     lastLogin: "2024-01-15 14:30",
@@ -275,7 +288,7 @@ const adminAccounts = [
   },
   {
     id: "admin002",
-    adminId: "product.manager@company.com",
+    adminId: "product",
     username: "product_manager",
     name: "이상품",
     role: "Product",
@@ -284,7 +297,7 @@ const adminAccounts = [
   },
   {
     id: "admin003",
-    adminId: "order.manager@company.com",
+    adminId: "order",
     username: "order_manager",
     name: "박주문",
     role: "Order",
@@ -293,7 +306,7 @@ const adminAccounts = [
   },
   {
     id: "admin004",
-    adminId: "member.manager@company.com",
+    adminId: "member",
     username: "member_manager",
     name: "최회원",
     role: "Member",
@@ -302,7 +315,7 @@ const adminAccounts = [
   },
   {
     id: "admin005",
-    adminId: "marketing@company.com",
+    adminId: "marketing",
     username: "marketing_team",
     name: "정마케팅",
     role: "Marketing",
@@ -311,7 +324,7 @@ const adminAccounts = [
   },
   {
     id: "admin006",
-    adminId: "support@company.com",
+    adminId: "support",
     username: "cs_support",
     name: "한상담",
     role: "Support",
@@ -439,13 +452,16 @@ function Sidebar({ isOpen, onClose, activeMenu, setActiveMenu, userRole, setActi
         <div className="flex items-center justify-between p-4" style={{ borderBottom: `1px solid ${theme.border}` }}>
           <div className="flex items-center space-x-2">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: theme.primary }}
+              className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
             >
-              <Package className="w-5 h-5 text-white" />
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-MQ5pMJM88ytq3eQJvj93CCYF4gabLD.png"
+                alt="제니스 로고"
+                className="w-8 h-8 object-contain"
+              />
             </div>
             <span className="font-bold text-lg" style={{ color: theme.text }}>
-              쇼핑몰 관리
+              제니스 쇼핑몰 관리
             </span>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose} className="lg:hidden">
@@ -509,56 +525,72 @@ function Sidebar({ isOpen, onClose, activeMenu, setActiveMenu, userRole, setActi
   )
 }
 
-function TopBar({ onMenuClick, userRole }: { onMenuClick: () => void; userRole: string }) {
-  const currentPermission = permissionGroups[userRole as keyof typeof permissionGroups]
+function TopBar({ onMenuClick, userRole, adminUser }: { onMenuClick: () => void; userRole: string; adminUser?: any }) {
+  const handleLogout = () => {
+    localStorage.removeItem('admin_user')
+    localStorage.removeItem('admin_role')
+    window.location.href = '/admin/login'
+  }
 
   return (
     <div
-      className="flex items-center justify-between p-4"
-      style={{
-        backgroundColor: theme.surface,
-        borderBottom: `1px solid ${theme.border}`,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-      }}
+      className="flex items-center justify-between p-4 border-b"
+      style={{ backgroundColor: theme.surface, borderColor: theme.border }}
     >
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="sm" onClick={onMenuClick} className="lg:hidden">
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          style={{ color: theme.textMuted }}
+        >
           <Menu className="w-5 h-5" />
-        </Button>
+        </button>
 
-        <div className="flex items-center space-x-2">
-          <Bell className="w-5 h-5" style={{ color: theme.primary }} />
-          <Badge style={{ backgroundColor: theme.error, color: "white" }}>3</Badge>
+        <div className="flex items-center space-x-3">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
+          >
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-MQ5pMJM88ytq3eQJvj93CCYF4gabLD.png"
+              alt="제니스 로고"
+              className="w-8 h-8 object-contain"
+            />
+          </div>
+          <span className="font-bold text-lg" style={{ color: theme.text }}>
+            제니스 쇼핑몰 관리
+          </span>
         </div>
       </div>
 
       <div className="flex items-center space-x-4">
-        <div
-          className="hidden md:flex items-center space-x-3 px-4 py-2 rounded-lg"
-          style={{ backgroundColor: currentPermission?.color + "20" }}
-        >
-          <Shield className="w-4 h-4" style={{ color: currentPermission?.color }} />
-          <div className="text-sm">
-            <div className="font-medium" style={{ color: theme.text }}>
-              {currentPermission?.name}
+        {/* 로그인된 사용자 정보 */}
+        {adminUser && (
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <p className="text-sm font-medium" style={{ color: theme.text }}>
+                {adminUser.name} ({adminUser.username})
+              </p>
+              <p className="text-xs" style={{ color: theme.textMuted }}>
+                {permissionGroups[adminUser.role as keyof typeof permissionGroups]?.name}
+              </p>
             </div>
-            <div className="text-xs" style={{ color: theme.textMuted }}>
-              Level {currentPermission?.level}
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" 
+                 style={{ backgroundColor: theme.primary }}>
+              <User className="w-4 h-4 text-white" />
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="flex items-center space-x-2">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: theme.primary }}
-          >
-            <User className="w-4 h-4 text-white" />
-          </div>
-          <span className="hidden md:block font-medium" style={{ color: theme.text }}>
-            관리자
-          </span>
-        </div>
+        {/* 로그아웃 버튼 */}
+        <Button
+          onClick={handleLogout}
+          variant="outline"
+          size="sm"
+          className="flex items-center space-x-2"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>로그아웃</span>
+        </Button>
       </div>
     </div>
   )
@@ -1318,20 +1350,371 @@ function AdminAccountsPage() {
   )
 }
 
+// 정산 관리 페이지 컴포넌트
+function SettlementPage() {
+  const [settlements, setSettlements] = useState<any[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  const today = new Date()
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(today.getDate() - 30)
+
+  const [startDate, setStartDate] = useState<string>(thirtyDaysAgo.toISOString().split('T')[0])
+  const [endDate, setEndDate] = useState<string>(today.toISOString().split('T')[0])
+
+  // Mock data for settlements
+  const mockSettlements = [
+    {
+      id: 1,
+      orderNumber: "ORD-2024-001",
+      orderDate: "2024-01-15",
+      orderAmount: 125000,
+      settlementAmount: 118750,
+      status: "COMPLETED",
+      customerName: "김철수"
+    },
+    {
+      id: 2,
+      orderNumber: "ORD-2024-002", 
+      orderDate: "2024-01-14",
+      orderAmount: 89000,
+      settlementAmount: 84550,
+      status: "PENDING",
+      customerName: "이영희"
+    },
+    {
+      id: 3,
+      orderNumber: "ORD-2024-003",
+      orderDate: "2024-01-13", 
+      orderAmount: 234000,
+      settlementAmount: 222300,
+      status: "COMPLETED",
+      customerName: "박민수"
+    },
+    {
+      id: 4,
+      orderNumber: "ORD-2024-004",
+      orderDate: "2024-01-12",
+      orderAmount: 67000,
+      settlementAmount: 63650,
+      status: "PENDING", 
+      customerName: "정수진"
+    }
+  ]
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true)
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        setSettlements(mockSettlements)
+        setError(null)
+      } catch (err) {
+        setError('데이터를 불러오는데 실패했습니다.')
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
+
+  const filteredSettlements = useMemo(() => {
+    return settlements.filter(s => {
+      const orderDate = new Date(s.orderDate)
+      const start = new Date(startDate)
+      const end = new Date(endDate)
+      end.setHours(23, 59, 59, 999)
+      return orderDate >= start && orderDate <= end
+    })
+  }, [settlements, startDate, endDate])
+
+  const summary = useMemo(() => {
+    return filteredSettlements.reduce((acc, curr) => {
+      acc.totalSales += curr.orderAmount
+      acc.totalOrders += 1
+      if (curr.status === "COMPLETED") {
+        acc.completedAmount += curr.settlementAmount
+      }
+      if (curr.status === "PENDING") {
+        acc.pendingAmount += curr.settlementAmount
+      }
+      return acc
+    }, {
+      totalSales: 0,
+      completedAmount: 0,
+      pendingAmount: 0,
+      totalOrders: 0
+    })
+  }, [filteredSettlements])
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'KRW'
+    }).format(amount)
+  }
+
+  const IconTotalSales = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+  )
+
+  const IconCompleted = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+
+  const IconPending = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+  
+  const IconTotalOrders = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+    </svg>
+  )
+
+  const DashboardCard = ({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) => (
+    <div className="bg-white p-6 rounded-xl shadow-md">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-500">{title}</p>
+          <p className="text-2xl font-bold text-slate-900">{value}</p>
+        </div>
+        <div className="text-slate-400">
+          {icon}
+        </div>
+      </div>
+    </div>
+  )
+
+  const SettlementTable = ({ settlements }: { settlements: any[] }) => (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-slate-200">
+            <th className="text-left p-3 font-medium text-slate-700">주문번호</th>
+            <th className="text-left p-3 font-medium text-slate-700">주문일</th>
+            <th className="text-left p-3 font-medium text-slate-700">고객명</th>
+            <th className="text-right p-3 font-medium text-slate-700">주문금액</th>
+            <th className="text-right p-3 font-medium text-slate-700">정산금액</th>
+            <th className="text-center p-3 font-medium text-slate-700">상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          {settlements.map((settlement) => (
+            <tr key={settlement.id} className="border-b border-slate-100 hover:bg-slate-50">
+              <td className="p-3 text-slate-900">{settlement.orderNumber}</td>
+              <td className="p-3 text-slate-600">{settlement.orderDate}</td>
+              <td className="p-3 text-slate-900">{settlement.customerName}</td>
+              <td className="p-3 text-right text-slate-900">{formatCurrency(settlement.orderAmount)}</td>
+              <td className="p-3 text-right text-slate-900">{formatCurrency(settlement.settlementAmount)}</td>
+              <td className="p-3 text-center">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  settlement.status === 'COMPLETED' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {settlement.status === 'COMPLETED' ? '정산완료' : '정산예정'}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen bg-slate-100 text-slate-800 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900">정산 관리 대시보드</h1>
+          <p className="text-slate-500 mt-1">판매 내역과 정산 현황을 확인하세요.</p>
+        </header>
+
+        <main>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <DashboardCard title="총 매출" value={formatCurrency(summary.totalSales)} icon={<IconTotalSales />} />
+            <DashboardCard title="정산 완료 금액" value={formatCurrency(summary.completedAmount)} icon={<IconCompleted />} />
+            <DashboardCard title="정산 예정 금액" value={formatCurrency(summary.pendingAmount)} icon={<IconPending />} />
+            <DashboardCard title="총 주문 건수" value={`${summary.totalOrders} 건`} icon={<IconTotalOrders />} />
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-md">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+              <h2 className="text-xl font-semibold text-slate-800">정산 내역</h2>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="date" 
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-slate-100 border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <span className="text-slate-500">~</span>
+                <input 
+                  type="date" 
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="bg-slate-100 border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+            
+            {loading ? (
+              <div className="text-center py-16">
+                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                 <p className="mt-4 text-slate-500">데이터를 불러오는 중...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-16 text-red-500 bg-red-50 rounded-lg">
+                <p>{error}</p>
+              </div>
+            ) : (
+              <SettlementTable settlements={filteredSettlements} />
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+// 회원 목록/검색 페이지 컴포넌트
+function MembersPage() {
+  const [members, setMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [search, setSearch] = useState("")
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        setLoading(true)
+        setError("")
+        // 실제 API 엔드포인트에 맞게 수정
+        const res = await fetch("/api/admin/users/")
+        if (!res.ok) throw new Error("회원 정보를 불러오지 못했습니다.")
+        const data = await res.json()
+        setMembers(data)
+      } catch (err: any) {
+        setError(err.message || "에러가 발생했습니다.")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchMembers()
+  }, [])
+
+  const filtered = useMemo(() => {
+    return members.filter((m) =>
+      m.username?.toLowerCase().includes(search.toLowerCase()) ||
+      m.name?.toLowerCase().includes(search.toLowerCase()) ||
+      m.email?.toLowerCase().includes(search.toLowerCase())
+    )
+  }, [members, search])
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center space-x-2">
+            <Users className="w-5 h-5" style={{ color: theme.primary }} />
+            <span>회원 목록/검색</span>
+          </CardTitle>
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: theme.textMuted }} />
+            <Input
+              placeholder="이름, 아이디, 이메일 검색..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="text-center py-12">불러오는 중...</div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-12">{error}</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr style={{ backgroundColor: theme.primaryLight }}>
+                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>아이디</th>
+                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>이름</th>
+                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>이메일</th>
+                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>가입일</th>
+                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((m: any) => (
+                  <tr key={m.id} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                    <td className="p-3">{m.username}</td>
+                    <td className="p-3">{m.name}</td>
+                    <td className="p-3">{m.email}</td>
+                    <td className="p-3">{m.created_at ? m.created_at.slice(0, 10) : ""}</td>
+                    <td className="p-3">{m.is_active ? "활성" : "비활성"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function EcommerceAdmin() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeMenu, setActiveMenu] = useState("admin")
-  const [activeSubmenu, setActiveSubmenu] = useState<string | null>("관리자 계정")
+  const [activeMenu, setActiveMenu] = useState("dashboard")
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [userRole, setUserRole] = useState("Admin")
+  const [adminUser, setAdminUser] = useState<any>(null)
+
+  // 로그인된 관리자 정보 확인
+  useEffect(() => {
+    const storedUser = localStorage.getItem('admin_user')
+    const storedRole = localStorage.getItem('admin_role')
+    
+    if (storedUser) {
+      const user = JSON.parse(storedUser)
+      setAdminUser(user)
+      setUserRole(storedRole || user.role)
+    } else {
+      // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+      window.location.href = '/admin/login'
+    }
+  }, [])
 
   // 현재 활성화된 메뉴와 서브메뉴에 따라 컨텐츠 렌더링
   const renderContent = () => {
-    if (activeMenu === "dashboard" || !activeSubmenu) {
+    if (activeMenu === "dashboard" || (!activeSubmenu && activeMenu !== "settlement")) {
       return <Dashboard userRole={userRole} />
     }
 
     if (activeMenu === "admin" && activeSubmenu === "관리자 계정") {
       return <AdminAccountsPage />
+    }
+
+    if (activeMenu === "members" && activeSubmenu === "회원 목록/검색") {
+      return <MembersPage />
+    }
+
+    if (activeMenu === "settlement" && activeSubmenu === "정산 내역") {
+      return <SettlementPage />
     }
 
     // 기본적으로 대시보드 표시
@@ -1345,7 +1728,9 @@ export default function EcommerceAdmin() {
         <Select value={userRole} onValueChange={setUserRole}>
           <SelectTrigger className="w-48">
             <Shield className="w-4 h-4 mr-2" />
-            <SelectValue />
+            <SelectValue placeholder="권한 선택">
+              {permissionGroups[userRole as keyof typeof permissionGroups]?.name} (Level {permissionGroups[userRole as keyof typeof permissionGroups]?.level})
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {Object.entries(permissionGroups).map(([key, group]) => (
@@ -1368,7 +1753,7 @@ export default function EcommerceAdmin() {
         />
 
         <div className="flex-1 lg:ml-0">
-          <TopBar onMenuClick={() => setSidebarOpen(true)} userRole={userRole} />
+          <TopBar onMenuClick={() => setSidebarOpen(true)} userRole={userRole} adminUser={adminUser} />
 
           <main className="p-6">
             <div className="mb-6">

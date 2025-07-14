@@ -23,6 +23,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  DollarSign,
 } from "lucide-react"
 
 const theme = {
@@ -143,6 +144,15 @@ const menuItems = [
     ],
   },
   {
+    id: "settlement",
+    name: "정산관리",
+    icon: DollarSign,
+    items: [
+      { name: "정산 내역", path: "/settlement/history" },
+      { name: "정산 요청", path: "/settlement/request" },
+    ],
+  },
+  {
     id: "admin",
     name: "관리자 설정",
     icon: Settings,
@@ -213,13 +223,17 @@ function Sidebar({ isOpen, onClose, activeMenu, setActiveMenu }: SidebarProps) {
         <div className="flex items-center justify-between p-4" style={{ borderBottom: `1px solid ${theme.border}` }}>
           <div className="flex items-center space-x-2">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
               style={{ backgroundColor: theme.primary }}
             >
-              <Package className="w-5 h-5 text-white" />
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-MQ5pMJM88ytq3eQJvj93CCYF4gabLD.png"
+                alt="제니스 로고"
+                className="w-8 h-8 object-contain"
+              />
             </div>
             <span className="font-bold text-lg" style={{ color: theme.text }}>
-              쇼핑몰 관리
+              제니스 쇼핑몰 관리
             </span>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose} className="lg:hidden">
