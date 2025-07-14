@@ -1588,95 +1588,6 @@ function SettlementPage() {
   )
 }
 
-// 회원 목록/검색 페이지 컴포넌트
-function MembersPage() {
-  const [members, setMembers] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [search, setSearch] = useState("")
-
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        setLoading(true)
-        setError("")
-        // 실제 API 엔드포인트에 맞게 수정
-        const res = await fetch("/api/admin/users/")
-        if (!res.ok) throw new Error("회원 정보를 불러오지 못했습니다.")
-        const data = await res.json()
-        setMembers(data)
-      } catch (err: any) {
-        setError(err.message || "에러가 발생했습니다.")
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchMembers()
-  }, [])
-
-  const filtered = useMemo(() => {
-    return members.filter((m) =>
-      m.username?.toLowerCase().includes(search.toLowerCase()) ||
-      m.name?.toLowerCase().includes(search.toLowerCase()) ||
-      m.email?.toLowerCase().includes(search.toLowerCase())
-    )
-  }, [members, search])
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <Users className="w-5 h-5" style={{ color: theme.primary }} />
-            <span>회원 목록/검색</span>
-          </CardTitle>
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: theme.textMuted }} />
-            <Input
-              placeholder="이름, 아이디, 이메일 검색..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-10 w-64"
-            />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="text-center py-12">불러오는 중...</div>
-        ) : error ? (
-          <div className="text-center text-red-500 py-12">{error}</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr style={{ backgroundColor: theme.primaryLight }}>
-                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>아이디</th>
-                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>이름</th>
-                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>이메일</th>
-                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>가입일</th>
-                  <th className="p-3 text-left font-medium" style={{ color: theme.text }}>상태</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((m: any) => (
-                  <tr key={m.id} style={{ borderBottom: `1px solid ${theme.border}` }}>
-                    <td className="p-3">{m.username}</td>
-                    <td className="p-3">{m.name}</td>
-                    <td className="p-3">{m.email}</td>
-                    <td className="p-3">{m.created_at ? m.created_at.slice(0, 10) : ""}</td>
-                    <td className="p-3">{m.is_active ? "활성" : "비활성"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
 export default function EcommerceAdmin() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeMenu, setActiveMenu] = useState("dashboard")
@@ -1707,10 +1618,6 @@ export default function EcommerceAdmin() {
 
     if (activeMenu === "admin" && activeSubmenu === "관리자 계정") {
       return <AdminAccountsPage />
-    }
-
-    if (activeMenu === "members" && activeSubmenu === "회원 목록/검색") {
-      return <MembersPage />
     }
 
     if (activeMenu === "settlement" && activeSubmenu === "정산 내역") {
