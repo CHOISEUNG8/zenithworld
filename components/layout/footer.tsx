@@ -52,7 +52,7 @@ export default function Footer() {
                 />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-                제니스 월드
+                제니스 몰
               </span>
             </Link>
             <p className="text-sm text-gray-300 leading-relaxed">
