@@ -52,7 +52,7 @@ export default function Footer() {
                 />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-                ZENITH WORLD
+                제니스 월드
               </span>
             </Link>
             <p className="text-sm text-gray-300 leading-relaxed">
@@ -72,7 +72,7 @@ export default function Footer() {
               </div>
               <div>
                 <p className="font-medium text-white mb-1">상담 이메일</p>
-                <p>help@zenithworld.com</p>
+                <p>help@zenithworld.shop</p>
               </div>
 
               <div className="pt-2">
@@ -144,7 +144,7 @@ export default function Footer() {
               <p>
                 <span className="font-medium text-white">호스팅서비스</span>
                 <br />
-                (주)제니스
+                (주)제니스 코퍼레이션
               </p>
             </div>
 
