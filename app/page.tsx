@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import HeroSection from "@/components/sections/hero-section"
+import TimeSaleSection from "@/components/sections/time-sale-section"
 import FeaturedProducts from "@/components/sections/featured-products"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Award, ChevronRight, Crown, Zap, Gift, Instagram, Truck, Shield, Headphones } from "lucide-react"
+import { Users, Award, ChevronRight, Crown, Zap, Gift, Instagram, Truck, Shield, Headphones, Building2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 const trendingBrands = [
@@ -81,10 +82,10 @@ const serviceFeatures = [
     color: "text-green-500",
   },
   {
-    icon: Headphones,
+    icon: Building2,
     title: "입점 문의",
     description: "함께 성장 할 수 있는 기회",
-    color: "text-purple-500",
+    color: "text-blue-600",
     clickable: true,
   },
   {
@@ -118,41 +119,16 @@ export default function HomePage() {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Service Features */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {serviceFeatures.map((feature, index) => (
-              <Card
-                key={index}
-                className={`text-center hover:shadow-lg transition-shadow duration-300 ${
-                  feature.title === "회원 혜택" || feature.title === "입점 문의"
-                    ? "cursor-pointer hover:scale-105 transform transition-transform"
-                    : ""
-                }`}
-                onClick={
-                  feature.title === "회원 혜택"
-                    ? () => setShowBenefitsModal(true)
-                    : feature.title === "입점 문의"
-                      ? () => handleLinkClick("/b2b-signup")
-                      : undefined
-                }
-              >
-                <CardContent className="p-6">
-                  <feature.icon className={`w-12 h-12 mx-auto mb-4 ${feature.color}`} />
-                  <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* 메인배너와 타임세일 사이 간격 */}
+      <div className="mt-6 md:mt-12" />
 
-      {/* Featured Products */}
+      {/* 타임세일 섹션 */}
+      <TimeSaleSection />
+
+      {/* 추천 상품 */}
       <FeaturedProducts />
 
-      {/* Trending Brands */}
+      {/* 트렌딩 브랜드 */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-12">
@@ -160,9 +136,7 @@ export default function HomePage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-4">🔥 트렌딩 브랜드</h2>
               <p className="text-gray-600 text-lg">지금 가장 핫한 브랜드들을 만나보세요</p>
             </div>
-            <Button variant="outline" onClick={() => handleLinkClick("/products")}>
-              전체 브랜드 <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            <Button variant="outline" onClick={() => handleLinkClick("/products")}>전체 브랜드 <ChevronRight className="w-4 h-4 ml-1" /></Button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {trendingBrands.map((brand) => (
@@ -202,7 +176,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter & Community */}
+      {/* 뉴스레터 & 커뮤니티 */}
       <section className="py-20 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
@@ -253,6 +227,37 @@ export default function HomePage() {
                 구독하기
               </Button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 서비스 특징 */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {serviceFeatures.map((feature, index) => (
+              <Card
+                key={index}
+                className={`text-center hover:shadow-lg transition-shadow duration-300 ${
+                  feature.title === "회원 혜택" || feature.title === "입점 문의"
+                    ? "cursor-pointer hover:scale-105 transform transition-transform"
+                    : ""
+                }`}
+                onClick={
+                  feature.title === "회원 혜택"
+                    ? () => setShowBenefitsModal(true)
+                    : feature.title === "입점 문의"
+                      ? () => handleLinkClick("/b2b-signup")
+                      : undefined
+                }
+              >
+                <CardContent className="p-6">
+                  <feature.icon className={`w-12 h-12 mx-auto mb-4 ${feature.color}`} />
+                  <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 text-sm">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

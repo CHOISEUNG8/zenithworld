@@ -99,6 +99,14 @@ export default function MyPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
 
+  // 모든 useState를 조건부 return 이전에 호출
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    email: user?.userId ? user.userId + "@example.com" : "",
+    phone: "010-1234-5678", // 실제 사용자 정보로 업데이트 필요
+    joinDate: "2023-06-15",
+  })
+
   // 로그인 상태 확인 - loading이 완료되고 user가 없을 때만 리다이렉트
   useEffect(() => {
     // loading이 false가 되고 user가 없을 때만 리다이렉트
@@ -106,6 +114,18 @@ export default function MyPage() {
       router.push("/login")
     }
   }, [user, loading, router])
+
+  // user 정보가 변경될 때 formData 업데이트
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name,
+        email: user.userId + "@example.com",
+        phone: "010-1234-5678",
+        joinDate: "2023-06-15",
+      })
+    }
+  }, [user])
 
   // 로딩 중일 때는 로딩 화면 표시
   if (loading) {
@@ -130,13 +150,6 @@ export default function MyPage() {
     totalOrders: 15,
     totalSpent: 2340000,
   }
-
-  const [formData, setFormData] = useState({
-    name: userInfo.name,
-    email: userInfo.email,
-    phone: userInfo.phone,
-    joinDate: userInfo.joinDate,
-  })
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
