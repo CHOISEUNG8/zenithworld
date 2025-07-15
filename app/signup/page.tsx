@@ -146,6 +146,16 @@ export default function SignupPage() {
     return Object.keys(newErrors).length === 0
   }
 
+  // 휴대폰번호를 010-1234-5678 형식으로 변환
+  function formatPhoneForBackend(phone: string) {
+    if (phone.length === 11) {
+      return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+    } else if (phone.length === 10) {
+      return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    }
+    return phone;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
@@ -153,11 +163,12 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
+      const formattedPhone = formatPhoneForBackend(formData.phone)
       const result = await signup(
         formData.userId, 
         formData.password, 
         formData.name,
-        formData.phone,
+        formattedPhone,
         formData.birthYear && formData.birthMonth && formData.birthDay 
           ? `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`
           : undefined,
@@ -281,11 +292,11 @@ export default function SignupPage() {
                 <Input
                   id="userId"
                   name="userId"
-                  type="text"
-                  placeholder="아이디를 입력하세요 (4~20자, 영문+숫자 혼합)"
+                  placeholder="4~20자, 영문/숫자 조합"
                   value={formData.userId}
                   onChange={handleInputChange}
                   onBlur={handleIdBlur}
+                  autoComplete="username"
                   className={errors.userId ? "border-red-500" : ""}
                 />
                 {errors.userId && <p className="text-sm text-red-500">{errors.userId}</p>}
@@ -302,6 +313,7 @@ export default function SignupPage() {
                     value={formData.password}
                     onChange={handleInputChange}
                     onBlur={handlePasswordBlur}
+                    autoComplete="new-password"
                     className={errors.password ? "border-red-500" : ""}
                   />
                   <Button
@@ -327,6 +339,7 @@ export default function SignupPage() {
                     placeholder="비밀번호를 다시 입력해주세요"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
+                    autoComplete="new-password"
                     className={errors.confirmPassword ? "border-red-500" : ""}
                   />
                   <Button
@@ -352,6 +365,7 @@ export default function SignupPage() {
                     value={formData.name}
                     onChange={handleInputChange}
                     onBlur={handleNameBlur}
+                    autoComplete="name"
                     className={errors.name ? "border-red-500" : ""}
                   />
                   {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
@@ -365,6 +379,7 @@ export default function SignupPage() {
                     value={formatPhone(formData.phone)}
                     onChange={handlePhoneChange}
                     onBlur={handlePhoneBlur}
+                    autoComplete="tel"
                     className={errors.phone ? "border-red-500" : ""}
                   />
                   {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
@@ -386,6 +401,7 @@ export default function SignupPage() {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, birthYear: e.target.value.replace(/[^0-9]/g, "") }))
                       }
+                      autoComplete="bday-year"
                       className="w-20"
                     />
                     <span className="self-center">년</span>
@@ -400,6 +416,7 @@ export default function SignupPage() {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, birthMonth: e.target.value.replace(/[^0-9]/g, "") }))
                       }
+                      autoComplete="bday-month"
                       className="w-14"
                     />
                     <span className="self-center">월</span>
@@ -414,6 +431,7 @@ export default function SignupPage() {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, birthDay: e.target.value.replace(/[^0-9]/g, "") }))
                       }
+                      autoComplete="bday-day"
                       className="w-14"
                     />
                     <span className="self-center">일</span>
@@ -426,6 +444,7 @@ export default function SignupPage() {
                     name="gender"
                     value={formData.gender}
                     onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
+                    autoComplete="sex"
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option value="">선택하세요</option>

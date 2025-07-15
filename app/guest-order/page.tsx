@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,8 @@ interface OrderInfo {
     address: string
     method: string
     fee: number
+    trackingNumber: string
+    customsCode: string
   }
   payment: {
     method: string
@@ -46,9 +48,9 @@ export default function GuestOrderPage() {
 
   // 샘플 주문 데이터
   const sampleOrders: Record<string, OrderInfo> = {
-    "ORD-2024-001": {
-      orderNumber: "ORD-2024-001",
-      orderDate: "2024-01-15",
+    "ZORD202507080001": {
+      orderNumber: "ZORD202507080001",
+      orderDate: "2025-07-08",
       status: "배송중",
       items: [
         { name: "무선 블루투스 이어폰", quantity: 1, price: 89000 },
@@ -58,6 +60,8 @@ export default function GuestOrderPage() {
         address: "서울시 강남구 테헤란로 123",
         method: "일반배송",
         fee: 3000,
+        trackingNumber: "123456781234",
+        customsCode: "P123456781234",
       },
       payment: {
         method: "신용카드",
@@ -69,8 +73,8 @@ export default function GuestOrderPage() {
         email: "guest@example.com",
       },
     },
-    "ORD-2024-002": {
-      orderNumber: "ORD-2024-002",
+    "ZORD202401200002": {
+      orderNumber: "ZORD202401200002",
       orderDate: "2024-01-20",
       status: "배송완료",
       items: [{ name: "프리미엄 백팩", quantity: 1, price: 65000 }],
@@ -78,6 +82,8 @@ export default function GuestOrderPage() {
         address: "부산시 해운대구 센텀로 456",
         method: "택배배송",
         fee: 0,
+        trackingNumber: "9876543210001",
+        customsCode: "P87654321B",
       },
       payment: {
         method: "계좌이체",
@@ -91,30 +97,37 @@ export default function GuestOrderPage() {
     },
   }
 
+  // 하이픈 없는 번호를 010-1234-5678 형식으로 변환
+  function formatPhoneNumber(phone: string) {
+    const onlyNums = phone.replace(/[^0-9]/g, "");
+    if (onlyNums.length === 11) {
+      return `${onlyNums.slice(0, 3)}-${onlyNums.slice(3, 7)}-${onlyNums.slice(7)}`;
+    }
+    return phone;
+  }
+
   const handleSearch = async () => {
     if (!orderNumber.trim() || !contactValue.trim()) {
-      setError("주문번호와 연락처를 모두 입력해주세요.")
+      setError("주문번호와 휴대폰번호를 모두 입력해주세요.")
       return
     }
 
     setIsLoading(true)
     setError("")
 
-    // 실제 API 호출 시뮬레이션
     setTimeout(() => {
       const order = sampleOrders[orderNumber.trim()]
 
       if (order) {
-        // 연락처 확인
-        const isValidContact =
-          (contactType === "email" && order.contact.email === contactValue.trim()) ||
-          (contactType === "phone" && order.contact.phone === contactValue.trim())
+        // 입력값을 하이픈 형식으로 변환해서 비교
+        const formattedInput = formatPhoneNumber(contactValue.trim());
+        const isValidContact = order.contact.phone === formattedInput;
 
         if (isValidContact) {
           setOrderInfo(order)
           setError("")
         } else {
-          setError("입력하신 연락처 정보가 일치하지 않습니다.")
+          setError("입력하신 휴대폰번호 정보가 일치하지 않습니다.")
           setOrderInfo(null)
         }
       } else {
@@ -162,35 +175,16 @@ export default function GuestOrderPage() {
               <Label htmlFor="orderNumber">주문번호</Label>
               <Input
                 id="orderNumber"
-                placeholder="주문번호를 입력하세요 (예: ORD-2024-001)"
+                placeholder="주문번호를 입력하세요 (예: ZORD202507080001)"
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
               />
             </div>
 
             <div className="space-y-4">
-              <Label>연락처 정보</Label>
-              <RadioGroup value={contactType} onValueChange={setContactType}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="email" id="email" />
-                  <Label htmlFor="email" className="flex items-center">
-                    <Mail className="h-4 w-4 mr-1" />
-                    이메일
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="phone" id="phone" />
-                  <Label htmlFor="phone" className="flex items-center">
-                    <Phone className="h-4 w-4 mr-1" />
-                    휴대폰번호
-                  </Label>
-                </div>
-              </RadioGroup>
-
+              <Label>휴대폰번호</Label>
               <Input
-                placeholder={
-                  contactType === "email" ? "이메일 주소를 입력하세요" : "휴대폰번호를 입력하세요 (010-0000-0000)"
-                }
+                placeholder="휴대폰번호를 입력하세요 (010-0000-0000)"
                 value={contactValue}
                 onChange={(e) => setContactValue(e.target.value)}
               />
@@ -204,14 +198,18 @@ export default function GuestOrderPage() {
 
             <div className="text-sm text-muted-foreground bg-muted p-4 rounded-md">
               <p className="font-medium mb-2">테스트용 샘플 데이터:</p>
-              <p>• 주문번호: ORD-2024-001, 이메일: guest@example.com</p>
-              <p>• 주문번호: ORD-2024-002, 전화번호: 010-9876-5432</p>
+              <p>• 주문번호: ZORD202507080001, 휴대폰번호: 01012345678</p>
+              <p>• 주문번호: ZORD202401200002, 휴대폰번호: 01098765432</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* 주문 정보 표시 */}
-        {orderInfo && (
+        {/* 조건부 렌더링: 로딩, 주문 정보 */}
+        {isLoading ? (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-lg">로딩 중...</div>
+          </div>
+        ) : orderInfo ? (
           <div className="space-y-6">
             {/* 주문 상태 */}
             <Card>
@@ -290,6 +288,14 @@ export default function GuestOrderPage() {
                       {orderInfo.shipping.fee === 0 ? "무료" : `${orderInfo.shipping.fee.toLocaleString()}원`}
                     </p>
                   </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">운송장번호</p>
+                    <p className="font-medium">{orderInfo.shipping.trackingNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">개인통관고유부호</p>
+                    <p className="font-medium">{orderInfo.shipping.customsCode}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -329,7 +335,7 @@ export default function GuestOrderPage() {
               </CardContent>
             </Card>
           </div>
-        )}
+        ) : null}
 
         {/* 회원가입 유도 */}
         <Card className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50">

@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Search,
@@ -236,7 +236,11 @@ export default function Header() {
               className="h-10 w-10 object-contain"
             />
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-green-500 to-purple-600 bg-clip-text text-transparent mr-8">
+<<<<<<< HEAD
               ZENITH SHOP
+=======
+              제니스 몰
+>>>>>>> 0b8dbf164d05d0cff9870f873b92cd90c531adb2
             </span>
           </Link>
 
@@ -334,17 +338,17 @@ export default function Header() {
             </form>
           </div>
 
-          {/* User Actions */}
-          <div className="flex items-center space-x-1">
+          {/* User Actions - PC에서만 보임 */}
+          <div className="flex items-center space-x-1 hidden md:flex">
             {!user ? (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="inline-flex">
                   <Link href="/login" onClick={() => handleLinkClick("/login")}>
                     <LogIn className="h-4 w-4 mr-1" />
                     로그인
                   </Link>
                 </Button>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="inline-flex">
                   <Link href="/signup" onClick={() => handleLinkClick("/signup")}>
                     <UserPlus className="h-4 w-4 mr-1" />
                     회원가입
@@ -352,18 +356,18 @@ export default function Header() {
                 </Button>
               </>
             ) : (
-              <Button variant="ghost" size="sm" onClick={logout}>
+              <Button variant="ghost" size="sm" onClick={logout} className="inline-flex">
                 <LogIn className="h-4 w-4 mr-1" />
                 로그아웃
               </Button>
             )}
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="inline-flex">
               <Link href={user ? "/mypage" : "/guest-order"} onClick={() => handleLinkClick(user ? "/mypage" : "/guest-order")}>
                 <User className="h-4 w-4 mr-1" />
                 마이페이지
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" className="relative group" asChild>
+            <Button variant="ghost" size="sm" className="relative group inline-flex" asChild>
               <Link href="/cart" onClick={() => handleLinkClick("/cart")}>
                 <ShoppingCart className="h-4 w-4 mr-1" />
                 장바구니
@@ -374,15 +378,18 @@ export default function Header() {
                 )}
               </Link>
             </Button>
+          </div>
 
-            {/* Mobile Menu */}
+          {/* 햄버거 버튼 - 모바일에서만 보임, 오른쪽 끝에 분리 */}
+          <div className="ml-auto md:hidden">
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden">
+                <Button variant="ghost" size="sm">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
+                <SheetTitle className="sr-only">메뉴</SheetTitle>
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between py-4">
                     <h2 className="text-lg font-semibold">메뉴</h2>
@@ -404,6 +411,30 @@ export default function Header() {
 
                   <ScrollArea className="flex-1">
                     <div className="space-y-4">
+                      {/* 모바일 전용 로그인/회원가입/로그아웃 버튼 */}
+                      <div className="space-y-2 md:hidden">
+                        {!user ? (
+                          <>
+                            <Button variant="outline" className="w-full justify-start" asChild>
+                              <Link href="/login" onClick={() => { handleLinkClick("/login"); setIsMenuOpen(false); }}>
+                                <LogIn className="h-4 w-4 mr-2" />
+                                로그인
+                              </Link>
+                            </Button>
+                            <Button variant="outline" className="w-full justify-start" asChild>
+                              <Link href="/signup" onClick={() => { handleLinkClick("/signup"); setIsMenuOpen(false); }}>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                회원가입
+                              </Link>
+                            </Button>
+                          </>
+                        ) : (
+                          <Button variant="outline" className="w-full justify-start" onClick={() => { logout(); setIsMenuOpen(false); }}>
+                            <LogIn className="h-4 w-4 mr-2" />
+                            로그아웃
+                          </Button>
+                        )}
+                      </div>
                       {/* Mobile Actions */}
                       <div className="space-y-2">
                         <Button

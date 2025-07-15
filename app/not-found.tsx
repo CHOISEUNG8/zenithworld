@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import BackButton from '@/components/BackButton'
 
 export default function NotFound() {
   return (
@@ -15,9 +16,7 @@ export default function NotFound() {
               홈으로 돌아가기
             </Link>
           </Button>
-          <Button variant="outline" onClick={() => window.history.back()}>
-            이전 페이지로
-          </Button>
+          <BackButton />
         </div>
       </div>
     </div>
